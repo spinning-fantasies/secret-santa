@@ -12,13 +12,13 @@ py create_db.py
 ### Register participants
 
 ```python
-register_participant.py
+py register_participant.py
 ```
 
 ### Assign participants
 
 ```python
-assign_participants.py
+py assign_participants.py
 ```
 
 ### Send emails
