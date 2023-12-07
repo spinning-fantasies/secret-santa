@@ -6,7 +6,22 @@ def assign_recipients():
     conn = sqlite3.connect("secretsanta.db")
     cursor = conn.cursor()
 
-    # Fetch all participants
+    # Add the 'assigned_recipient' column if not present
+    cursor.execute(
+        """
+        PRAGMA table_info(participants)
+    """
+    )
+    columns = cursor.fetchall()
+    if not any(col[1] == "assigned_recipient" for col in columns):
+        cursor.execute(
+            """
+            ALTER TABLE participants
+            ADD COLUMN assigned_recipient INTEGER DEFAULT 0
+        """
+        )
+
+    # Fetch all participants without assigned recipients
     cursor.execute(
         "SELECT id, name, email FROM participants WHERE assigned_recipient = 0"
     )
@@ -23,12 +38,11 @@ def assign_recipients():
 
         # Update the database with the assigned recipient
         cursor.execute(
-            "UPDATE participants SET assigned_recipient = 1 WHERE id = ?",
-            (participant_id,),
-        )
-        cursor.execute(
-            "UPDATE participants SET assigned_recipient = 1 WHERE id = ?",
-            (recipient_id,),
+            "UPDATE participants SET assigned_recipient = ? WHERE id = ?",
+            (
+                recipient_id,
+                participant_id,
+            ),
         )
 
         # Print the assignment (for demonstration purposes)
