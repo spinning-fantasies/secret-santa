@@ -5,11 +5,11 @@ from email.mime.multipart import MIMEMultipart
 import os
 
 # Retrieve environment variables
-sender_email = os.environ.get("MAILO_EMAIL")
-sender_password = os.environ.get("MAILO_PASSWORD")
+sender_email = os.environ.get("EMAIL_ADDRESS")
+sender_password = os.environ.get("EMAIL_PASSWORD")
 
 # Use the variables in your code
-print(f"Email: {sender_email}, Password: {sender_password}")
+# print(f"Email: {sender_email}, Password: {sender_password}")
 
 
 # Function to send emails
@@ -22,12 +22,13 @@ def send_email(sender_email, sender_password):
         "SELECT name, email, (SELECT name FROM participants WHERE id = assigned_recipient) AS recipient_name FROM participants WHERE assigned_recipient != 0"
     )
     participants = cursor.fetchall()
+    print(participants)
 
     # Email configuration (change as needed)
-    smtp_server = "mail.mailo.com"
-    smtp_port = 587
-    sender_name = "Le Père Noël Secret"
-    subject = "Oh oh oh, c'est le Père Noël !!!"
+    smtp_server = os.environ.get("SMTP_SERVER")  # Set SMTP server address
+    smtp_port = os.environ.get("SMTP_PORT")  # Set SMTP port
+    sender_name = "Père Noël"  # Set sender's name
+    subject = "Oh oh oh, c'est le Père Noël !!!"  # Set email subject
 
     # Connect to the SMTP server
     server = smtplib.SMTP(smtp_server, smtp_port)
@@ -35,6 +36,7 @@ def send_email(sender_email, sender_password):
     server.login(sender_email, sender_password)
 
     # Send emails to participants
+
     for participant in participants:
         participant_name, participant_email, recipient_name = participant
 
@@ -44,12 +46,13 @@ def send_email(sender_email, sender_password):
         message["To"] = participant_email
         message["Subject"] = subject
 
-        body = f"Hello {participant_name},\n\Vous êtes le Père Noël de {recipient_name}!\n\nJoyeux Noël !"
-        message.attach(MIMEText(body, "plain"))
+        # Adjusted French message with proper encoding
+        body = f"Hello {participant_name},\n\nVous êtes le Père Noël de {recipient_name}!\n\nJoyeux Noël !"
+        message.attach(MIMEText(body, "plain", "utf-8"))  # Ensure correct encoding
 
         # Send email
         server.sendmail(sender_email, participant_email, message.as_string())
-        print(f"Email envoyé à {participant_email}.")
+        print(f"Email sent to {participant_email}.")
 
     # Close connection to the SMTP server
     server.quit()
